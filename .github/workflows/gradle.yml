@@ -18,14 +18,22 @@ jobs:
       with:
         java-version: 1.8
 
+
     - name: Build with Gradle
       run: ./gradlew build
+
+    - name: Checkout Dockerfile 
+      uses: actions/checkout@v2
+      with:
+        repository: Daniel-labs/traccar-docker
+        path: traccar-docker
 
     - name: Build and Push Docker Image
       uses: mr-smithers-excellent/docker-build-push@v4
       with:
         image: ${{ secrets.GCP_PROJECT_ID }}/github-traccar
-        dockerfile: https://raw.githubusercontent.com/Daniel-labs/traccar-docker/master/debian/Dockerfile
+        dockerfile: debian/Dockerfile
         registry: gcr.io
         username: _json_key
         password: ${{ secrets.DOCKER_PASSWORD }}
+
