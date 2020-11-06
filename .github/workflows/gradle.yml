@@ -32,7 +32,7 @@ jobs:
       uses: mr-smithers-excellent/docker-build-push@v4
       with:
         image: ${{ secrets.GCP_PROJECT_ID }}/github-traccar
-        dockerfile: debian/
+        #dockerfile: debian/
         registry: gcr.io
         username: _json_key
         password: ${{ secrets.DOCKER_PASSWORD }}
