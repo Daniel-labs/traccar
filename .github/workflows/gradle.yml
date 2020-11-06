@@ -17,5 +17,16 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    -name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
     - name: Build with Gradle
       run: ./gradlew build
+
+    - name: Build and Push Docker Image
+      uses: mr-smithers-excellent/docker-build-push@v4
+      with:
+        image: ${{ secrets.GCP_PROJECT_ID }}/github-traccar
+        registry: gcr.io
+        username: _json_key
+        password: ${{ secrets.DOCKER_PASSWORD }}
