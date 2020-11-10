@@ -9,7 +9,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.RUN_PROJECT }}
   RUN_REGION: europe-north1
-  SERVICE_NAME: traccar-docker
+  SERVICE_NAME: github-traccar
 
 jobs:
   build:
@@ -33,7 +33,7 @@ jobs:
         repository: Daniel-labs/traccar-docker
         path: traccar-docker
 
-      # Setup gcloud CLI
+    - name: Setup gcloud CLI
     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
         version: '290.0.1'
@@ -44,6 +44,7 @@ jobs:
       uses: mr-smithers-excellent/docker-build-push@v4
       with:
         image: ${{ secrets.GCP_PROJECT_ID }}/github-traccar
+        tag: latest
         dockerfile: traccar-docker/debian/Dockerfile
         registry: gcr.io
         username: _json_key
@@ -55,10 +56,7 @@ jobs:
         gcloud run deploy "$SERVICE_NAME" \
           --quiet \
           --region "$RUN_REGION" \
-          --image "gcr.io/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA" \
+          --image "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest" \
           --platform "managed" \
           --allow-unauthenticated
-
-
-
 
