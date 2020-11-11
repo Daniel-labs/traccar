@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: traccar
+  name: traccar
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traccar
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: traccar
+    spec:
+      containers:
+        - image: gcr.io/chubbylabs/github.com/daniel-labs/traccar
+          imagePullPolicy: IfNotPresent
+          name: traccar-sha256-1
+          volumeMounts:
+            - mountPath: /opt/traccar/conf
+              name: config-volume
+            - mountPath: /opt/traccar/templates/export
+              name: export-volume
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: traccar-config
+          name: config-volume
+        - configMap:
+            defaultMode: 420
+            name: export
+          name: export-volume
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  labels:
+    app: traccar
+  name: traccar-hpa-dm0r
+  namespace: default
+spec:
+  maxReplicas: 1
+  metrics:
+    - resource:
+        name: cpu
+        targetAverageUtilization: 80
+      type: Resource
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: traccar
+---
+apiVersion: v1
+kind: Service
+metadata:
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  generateName: traccar-
+  labels:
+    app: traccar
+  name: traccar-w2q6z
+  namespace: default
+spec:
+  clusterIP: 10.8.1.42
+  externalTrafficPolicy: Cluster
+  ports:
+    - name: default
+      nodePort: 31549
+      port: 5055
+      protocol: TCP
+      targetPort: 5055
+    - name: teltonika
+      nodePort: 30285
+      port: 5027
+      protocol: TCP
+      targetPort: 5027
+  selector:
+    app: traccar
+  sessionAffinity: None
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    app: traccar
+  name: traccar-service
+  namespace: default
+spec:
+  clusterIP: 10.8.4.190
+  externalTrafficPolicy: Cluster
+  ports:
+    - nodePort: 32723
+      port: 80
+      protocol: TCP
+      targetPort: 8082
+  selector:
+    app: traccar
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  type: LoadBalancer
